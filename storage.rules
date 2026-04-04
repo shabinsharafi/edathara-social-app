@@ -1,0 +1,46 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAuth() {
+      return request.auth != null;
+    }
+    function isAdmin() {
+      return isAuth() && firestore.get(
+        /databases/(default)/documents/users/$(request.auth.uid)
+      ).data.isAdmin == true;
+    }
+
+    // News images — admin upload only
+    match /news/{imageId} {
+      allow read:  if isAuth();
+      allow write: if isAdmin()
+        && request.resource.size < 5 * 1024 * 1024   // max 5 MB
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    // Fundraiser images — admin upload only
+    match /fundraisers/{imageId} {
+      allow read:  if isAuth();
+      allow write: if isAdmin()
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    // Feedback attachments — any authenticated user
+    match /feedback/{imageId} {
+      allow read:  if isAdmin();
+      allow write: if isAuth()
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    // Banner images — admin upload only
+    match /banners/{imageId} {
+      allow read:  if isAuth();
+      allow write: if isAdmin()
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+  }
+}

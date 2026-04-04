@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "24971684992",
+    "project_id": "slot-bookingapp",
+    "storage_bucket": "slot-bookingapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:24971684992:android:c72b23e57294a04bbc0a65",
+        "android_client_info": {
+          "package_name": "com.loopz.edathara_social_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQR0MjA1A1WYzaefej8BMRZRrdhSBxryk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
