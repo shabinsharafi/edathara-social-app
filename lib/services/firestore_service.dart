@@ -265,6 +265,10 @@ class FirestoreService {
     await _db.collection('contacts').add(c.toMap());
   }
 
+  Future<void> updateContact(QuickContact c) async {
+    await _db.collection('contacts').doc(c.id).update(c.toMap());
+  }
+
   Future<void> deleteContact(String id) async {
     await _db.collection('contacts').doc(id).delete();
   }

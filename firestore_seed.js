@@ -64,7 +64,7 @@ async function seed() {
   // ── Banners ───────────────────────────────────────────────────────────────
   const banners = [
     {
-      title: 'Welcome to GreenField Club',
+      title: 'Welcome to Edathara Samskarika Samithi',
       subtitle: 'Book your slot in seconds',
       colorHex: '#0D2B1F',
       imageUrl: null,
@@ -107,7 +107,7 @@ async function seed() {
   // ── News ──────────────────────────────────────────────────────────────────
   const news = [
     {
-      title: 'Welcome to GreenField Club App!',
+      title: 'Welcome to Edathara Samskarika Samithi App!',
       body: 'We are thrilled to launch our official club app. You can now book grounds, stay updated with news, and connect with fellow members — all in one place.',
       authorId: 'admin',
       authorName: 'Admin',

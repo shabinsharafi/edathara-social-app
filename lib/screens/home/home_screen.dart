@@ -54,7 +54,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(currentAppUserProvider).valueOrNull;
-    final banners = ref.watch(bannersProvider).valueOrNull ?? _defaultBanners();
+    final banners = /*ref.watch(bannersProvider).valueOrNull ??*/ _defaultBanners();
     final news = ref.watch(newsProvider).valueOrNull ?? [];
     final myBookings = ref.watch(userBookingsProvider).valueOrNull ?? [];
 
@@ -71,7 +71,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               children: [
                 const Text('🏟', style: TextStyle(fontSize: 22)),
                 const SizedBox(width: 8),
-                const Text('GreenField Club',
+                const Text('Edathara Samskarika Samithi',
                     style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
                 const Spacer(),
                 if (user != null)
@@ -247,7 +247,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   List<BannerModel> _defaultBanners() => [
-    BannerModel(id: '1', title: 'Welcome to GreenField Club',
+    BannerModel(id: '1', title: 'Welcome to Edathara Samskarika Samithi',
         subtitle: 'Book your slot in seconds', colorHex: '#0D2B1F', sortOrder: 0),
     BannerModel(id: '2', title: 'Annual Sports Meet 2025',
         subtitle: 'Register now — limited slots', colorHex: '#1A3A6C', sortOrder: 1),

@@ -511,12 +511,12 @@ class BookingSuccessScreen extends StatelessWidget {
   const BookingSuccessScreen({super.key, required this.booking});
 
   String get _shareText =>
-      '🏟 GreenField Club — Booking Confirmed!\n\n'
+      '🏟 Edathara Samskarika Samithi — Booking Confirmed!\n\n'
       '${booking.groundIcon} ${booking.groundName}\n'
       '📅 ${DateFormat('EEEE, d MMMM yyyy').format(booking.date)}\n'
       '⏰ ${booking.slot}\n'
       '👤 ${booking.userName}\n\n'
-      'Booked via GreenField Club App ✅';
+      'Booked via Edathara Samskarika Samithi App ✅';
 
   void _shareWhatsApp() async {
     final url = Uri.parse(
@@ -528,7 +528,7 @@ class BookingSuccessScreen extends StatelessWidget {
   }
 
   void _shareGeneral() {
-    Share.share(_shareText, subject: 'My Slot Booking at GreenField Club');
+    Share.share(_shareText, subject: 'My Slot Booking at Edathara Samskarika Samithi');
   }
 
   @override

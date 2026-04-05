@@ -1,1 +1,37 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"slot-bookingapp","appId":"1:24971684992:android:c72b23e57294a04bbc0a65","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"slot-bookingapp","configurations":{"android":"1:24971684992:android:c72b23e57294a04bbc0a65","ios":"1:24971684992:ios:69b0df28985f25acbc0a65","web":"1:24971684992:web:b4c825255919431abc0a65"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "slot-bookingapp",
+          "appId": "1:24971684992:android:c72b23e57294a04bbc0a65",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "slot-bookingapp",
+          "configurations": {
+            "android": "1:24971684992:android:c72b23e57294a04bbc0a65",
+            "ios": "1:24971684992:ios:69b0df28985f25acbc0a65",
+            "web": "1:24971684992:web:b4c825255919431abc0a65"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

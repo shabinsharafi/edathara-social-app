@@ -33,7 +33,7 @@ class GreenFieldApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
-      title: 'Edathara Samskarika Samathi',
+      title: 'Edathara Samskarika Samithi',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       home: const _AuthGate(),
@@ -74,7 +74,7 @@ class _SplashScreen extends StatelessWidget {
             const Text('🏟', style: TextStyle(fontSize: 72)),
             const SizedBox(height: 16),
             const Text(
-              'GreenField Club',
+              'Edathara Samskarika Samithi',
               style: TextStyle(color: Colors.white, fontSize: 28,
                   fontWeight: FontWeight.w800),
             ),

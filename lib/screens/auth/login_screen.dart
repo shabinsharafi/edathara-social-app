@@ -94,7 +94,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ).animate().fadeIn(duration: 600.ms).scale(),
                 const SizedBox(height: 16),
                 Text(
-                  'GreenField Club',
+                  'Edathara Samskarika Samithi',
                   style: Theme.of(context).textTheme.displaySmall!.copyWith(
                     color: Colors.white, fontWeight: FontWeight.w800,
                   ),
@@ -128,7 +128,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          _isLogin ? 'Sign in to continue' : 'Join GreenField Club today',
+                          _isLogin ? 'Sign in to continue' : 'Join Edathara Samskarika Samithi today',
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                         const SizedBox(height: 24),
