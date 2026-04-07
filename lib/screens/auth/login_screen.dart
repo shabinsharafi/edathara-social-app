@@ -101,7 +101,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ).animate().fadeIn(delay: 200.ms),
                 const SizedBox(height: 4),
                 Text(
-                  'Your local sports & arts hub',
+                  'Your sports & arts hub',
                   style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 14),
                 ).animate().fadeIn(delay: 300.ms),
                 const SizedBox(height: 36),
