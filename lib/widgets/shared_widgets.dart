@@ -355,16 +355,20 @@ class SlotChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.mint
-              : unavailable
-                  ? AppColors.mist
-                  : Colors.white,
+              : isBlocked
+                  ? AppColors.warning.withOpacity(0.1)
+                  : isTaken
+                      ? AppColors.error.withOpacity(0.1)
+                      : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected
                 ? AppColors.mint
-                : unavailable
-                    ? AppColors.border
-                    : AppColors.lime,
+                : isBlocked
+                    ? AppColors.warning.withOpacity(0.4)
+                    : isTaken
+                        ? AppColors.error.withOpacity(0.4)
+                        : AppColors.lime,
             width: isSelected ? 2 : 1.5,
           ),
         ),
@@ -378,9 +382,11 @@ class SlotChip extends StatelessWidget {
                 fontSize: 14,
                 color: isSelected
                     ? Colors.white
-                    : unavailable
-                        ? AppColors.slate.withOpacity(0.5)
-                        : AppColors.ink,
+                    : isBlocked
+                        ? AppColors.warning
+                        : isTaken
+                            ? AppColors.error
+                            : AppColors.ink,
               ),
             ),
             if (unavailable)
