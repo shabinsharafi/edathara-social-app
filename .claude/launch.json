@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Flutter Web",
+      "runtimeExecutable": "D:\\flutter\\bin\\flutter.bat",
+      "runtimeArgs": ["run", "-d", "web-server", "--web-port", "5000", "--web-hostname", "localhost"],
+      "port": 5000
+    },
+    {
+      "name": "Firebase Hosting",
+      "runtimeExecutable": "firebase",
+      "runtimeArgs": ["serve", "--only", "hosting", "--port", "5001"],
+      "port": 5001
+    },
+    {
+      "name": "build_runner watch",
+      "runtimeExecutable": "flutter",
+      "runtimeArgs": ["pub", "run", "build_runner", "watch", "--delete-conflicting-outputs"],
+      "port": null
+    }
+  ]
+}
