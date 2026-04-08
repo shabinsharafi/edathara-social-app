@@ -54,7 +54,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(currentAppUserProvider).valueOrNull;
-    final banners = /*ref.watch(bannersProvider).valueOrNull ??*/ _defaultBanners();
+    final banners = ref.watch(bannersProvider).valueOrNull ?? _defaultBanners();
     final news = ref.watch(newsProvider).valueOrNull ?? [];
     final myBookings = ref.watch(userBookingsProvider).valueOrNull ?? [];
 
