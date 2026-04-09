@@ -185,8 +185,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           TextFormField(
                             controller: _phoneCtrl,
                             keyboardType: TextInputType.phone,
+                            validator: (v) {
+                              if (v == null || v.isEmpty) return 'Phone number required';
+                              if (v.length>12) return 'Invalid phone number';
+                              return null;
+                            },
                             decoration: const InputDecoration(
-                              labelText: 'Phone (optional)',
+                              labelText: 'Phone',
                               prefixIcon: Icon(Icons.phone_outlined),
                             ),
                           ),

@@ -144,7 +144,7 @@ class _GroundsTab extends ConsumerWidget {
             _Label('Icon'),
             const SizedBox(height: 8),
             Wrap(spacing: 10, runSpacing: 10,
-              children: ['🏟','🏏','⚽','🏸','🎾','🏐','🏑','🥊','🏊','🎱'].map((e) =>
+              children: ['🏟','🏏','⚽','🏸',/*'🎾','🏐','🏑','🥊','🏊','🎱'*/].map((e) =>
                 GestureDetector(onTap: () => setS(() => icon = e),
                   child: _IconOption(emoji: e, selected: icon == e)),
               ).toList(),
