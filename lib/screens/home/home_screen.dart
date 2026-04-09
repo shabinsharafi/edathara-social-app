@@ -69,7 +69,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             backgroundColor: AppColors.forest,
             title: Row(
               children: [
-                const Text('🏟', style: TextStyle(fontSize: 22)),
+                // const SizedBox(width: 8),
+                Image.asset("assets/logo.png",width: 25,height: 25,),
                 const SizedBox(width: 8),
                 const Text('Edathara Samskarika Samithi',
                     style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),

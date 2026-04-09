@@ -71,10 +71,11 @@ class _SplashScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('🏟', style: TextStyle(fontSize: 72)),
+            Image.asset("assets/logo.png",width: 90,height: 90,),
             const SizedBox(height: 16),
             const Text(
-              'Edathara Samskarika Samithi',
+              'Edathara\nSamskarika Samithi',
+              textAlign: TextAlign.center,
               style: TextStyle(color: Colors.white, fontSize: 28,
                   fontWeight: FontWeight.w800),
             ),
