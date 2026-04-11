@@ -3,35 +3,21 @@
     "platforms": {
       "android": {
         "default": {
-          "projectId": "slot-bookingapp",
-          "appId": "1:24971684992:android:c72b23e57294a04bbc0a65",
+          "projectId": "edathara-samskarika-samithi",
+          "appId": "1:732639221297:android:12302deb18315b50e36710",
           "fileOutput": "android/app/google-services.json"
         }
       },
       "dart": {
         "lib/firebase_options.dart": {
-          "projectId": "slot-bookingapp",
+          "projectId": "edathara-samskarika-samithi",
           "configurations": {
-            "android": "1:24971684992:android:c72b23e57294a04bbc0a65",
-            "ios": "1:24971684992:ios:69b0df28985f25acbc0a65",
-            "web": "1:24971684992:web:b4c825255919431abc0a65"
+            "android": "1:732639221297:android:12302deb18315b50e36710",
+            "ios": "1:732639221297:ios:2379a7819bba0493e36710",
+            "web": "1:732639221297:web:ccc88bef7be59746e36710"
           }
         }
       }
     }
-  },
-  "hosting": {
-    "public": "build/web",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ]
   }
 }

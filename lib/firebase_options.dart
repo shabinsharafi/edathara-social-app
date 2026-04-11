@@ -27,30 +27,30 @@ class DefaultFirebaseOptions {
   // ──────────────────────────────────────────────────────────────────────────
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAQR0MjA1A1WYzaefej8BMRZRrdhSBxryk',
-    appId: '1:24971684992:android:c72b23e57294a04bbc0a65',
-    messagingSenderId: '24971684992',
-    projectId: 'slot-bookingapp',
-    storageBucket: 'slot-bookingapp.firebasestorage.app',
+    apiKey: 'AIzaSyDEnBaEngQ9p8LkZNqtQ0phNJ2vdfYjVpo',
+    appId: '1:732639221297:android:12302deb18315b50e36710',
+    messagingSenderId: '732639221297',
+    projectId: 'edathara-samskarika-samithi',
+    storageBucket: 'edathara-samskarika-samithi.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDg1eAzi6U6NzUnLTf2VKV-a9eWrBS8GxY',
-    appId: '1:24971684992:ios:69b0df28985f25acbc0a65',
-    messagingSenderId: '24971684992',
-    projectId: 'slot-bookingapp',
-    storageBucket: 'slot-bookingapp.firebasestorage.app',
+    apiKey: 'AIzaSyBpVxP8kKv1YILpes2ZgtxZW5ex0iv_YdQ',
+    appId: '1:732639221297:ios:2379a7819bba0493e36710',
+    messagingSenderId: '732639221297',
+    projectId: 'edathara-samskarika-samithi',
+    storageBucket: 'edathara-samskarika-samithi.firebasestorage.app',
     iosBundleId: 'com.loopz.edatharaSocialApp',
   );
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAxGUEbmv-6Gftk1hc1wF4RBQ7lGXggA5I',
-    appId: '1:24971684992:web:b4c825255919431abc0a65',
-    messagingSenderId: '24971684992',
-    projectId: 'slot-bookingapp',
-    authDomain: 'slot-bookingapp.firebaseapp.com',
-    storageBucket: 'slot-bookingapp.firebasestorage.app',
-    measurementId: 'G-C8BNLXWPWH',
+    apiKey: 'AIzaSyB_08bEYnlGLKoqB2Efkh28k2lQLKlpvzs',
+    appId: '1:732639221297:web:ccc88bef7be59746e36710',
+    messagingSenderId: '732639221297',
+    projectId: 'edathara-samskarika-samithi',
+    authDomain: 'edathara-samskarika-samithi.firebaseapp.com',
+    storageBucket: 'edathara-samskarika-samithi.firebasestorage.app',
+    measurementId: 'G-HVE0B3H599',
   );
 
 }
