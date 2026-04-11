@@ -85,12 +85,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 40),
                 // Logo
                 Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.12),
                     shape: BoxShape.circle,
                   ),
-                  child: const Text('🏟', style: TextStyle(fontSize: 52)),
+                  child:
+                  Image.asset("assets/logo.png",width: 100,height: 100,),
                 ).animate().fadeIn(duration: 600.ms).scale(),
                 const SizedBox(height: 16),
                 Text(
