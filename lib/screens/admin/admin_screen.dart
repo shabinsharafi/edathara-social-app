@@ -14,7 +14,7 @@ import '../../models/models.dart';
 import '../../widgets/shared_widgets.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// ADMIN SHELL — 8 tabs
+// ADMIN SHELL — 9 tabs
 // ═══════════════════════════════════════════════════════════════════════════════
 class AdminScreen extends ConsumerStatefulWidget {
   const AdminScreen({super.key});
@@ -28,6 +28,7 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
   late final TabController _tab;
 
   static const _tabs = [
+    ('📊', 'Overview'),
     ('🏟', 'Grounds'),
     ('🚫', 'Slots'),
     ('📅', 'Bookings'),
@@ -42,16 +43,31 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
   void initState() {
     super.initState();
     _tab = TabController(length: _tabs.length, vsync: this);
+    _tab.addListener(_onTabChange);
+  }
+
+  void _onTabChange() {
+    if (!_tab.indexIsChanging) {
+      ref.read(adminTabIndexProvider.notifier).state = _tab.index;
+    }
   }
 
   @override
   void dispose() {
+    _tab.removeListener(_onTabChange);
     _tab.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Navigate to Overview when MainShell resets the tab index to 0
+    ref.listen<int>(adminTabIndexProvider, (prev, next) {
+      if (next == 0 && _tab.index != 0) {
+        _tab.animateTo(0);
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppColors.cream,
       appBar: AppBar(
@@ -70,17 +86,329 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
       ),
       body: TabBarView(
         controller: _tab,
-        children: const [
-          _GroundsTab(),
-          _BlockSlotsTab(),
-          _BookingsTab(),
-          _NewsTab(),
-          _FundsTab(),
-          _FeedbackTab(),
-          _ContactsTab(),
-          _AdminsTab(),
+        children: [
+          _OverviewTab(tabController: _tab),
+          const _GroundsTab(),
+          const _BlockSlotsTab(),
+          const _BookingsTab(),
+          const _NewsTab(),
+          const _FundsTab(),
+          const _FeedbackTab(),
+          const _ContactsTab(),
+          const _AdminsTab(),
         ],
       ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 0. OVERVIEW TAB
+// ═══════════════════════════════════════════════════════════════════════════════
+class _OverviewTab extends ConsumerWidget {
+  final TabController tabController;
+  const _OverviewTab({required this.tabController});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final grounds   = ref.watch(allGroundsProvider).valueOrNull ?? [];
+    final bookings  = ref.watch(allBookingsProvider).valueOrNull ?? [];
+    final news      = ref.watch(newsProvider).valueOrNull ?? [];
+    final funds     = ref.watch(fundraisersProvider).valueOrNull ?? [];
+    final feedbacks = ref.watch(feedbackProvider).valueOrNull ?? [];
+    final user      = ref.watch(currentAppUserProvider).valueOrNull;
+
+    final today = DateTime.now();
+    final todayBookings = bookings.where((b) =>
+      b.date.year == today.year &&
+      b.date.month == today.month &&
+      b.date.day == today.day &&
+      b.status == BookingStatus.confirmed).toList();
+    final pendingFeedback = feedbacks.where((f) => !f.isResolved).length;
+    final activeFunds = funds.where((f) => f.isActive).length;
+    final recentBookings = bookings
+        .where((b) => b.status == BookingStatus.confirmed)
+        .toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Header ──────────────────────────────────────────────────────
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: AppColors.primaryGradient,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('Welcome back,', style: TextStyle(
+                  color: Colors.white.withOpacity(0.75), fontSize: 13)),
+              const SizedBox(height: 2),
+              Text(user?.name ?? 'Admin', style: const TextStyle(
+                  color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 4),
+              Text(DateFormat('EEEE, d MMMM y').format(today),
+                  style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 12)),
+            ]),
+          ),
+          const SizedBox(height: 20),
+
+          // ── Stat grid ───────────────────────────────────────────────────
+          const _SectionLabel('At a Glance'),
+          const SizedBox(height: 10),
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+            childAspectRatio: 1.6,
+            children: [
+              _StatCard(
+                label: 'Today\'s Bookings',
+                value: '${todayBookings.length}',
+                icon: Icons.today_outlined,
+                color: AppColors.mint,
+                onTap: () => tabController.animateTo(3),
+              ),
+              _StatCard(
+                label: 'Total Bookings',
+                value: '${bookings.length}',
+                icon: Icons.calendar_month_outlined,
+                color: AppColors.info,
+                onTap: () => tabController.animateTo(3),
+              ),
+              _StatCard(
+                label: 'Grounds',
+                value: '${grounds.length}',
+                icon: Icons.sports_outlined,
+                color: AppColors.green,
+                onTap: () => tabController.animateTo(1),
+              ),
+              _StatCard(
+                label: 'Pending Feedback',
+                value: '$pendingFeedback',
+                icon: Icons.feedback_outlined,
+                color: pendingFeedback > 0 ? AppColors.warning : AppColors.slate,
+                onTap: () => tabController.animateTo(6),
+              ),
+              _StatCard(
+                label: 'News Posts',
+                value: '${news.length}',
+                icon: Icons.campaign_outlined,
+                color: AppColors.gold,
+                onTap: () => tabController.animateTo(4),
+              ),
+              _StatCard(
+                label: 'Active Funds',
+                value: '$activeFunds',
+                icon: Icons.volunteer_activism_outlined,
+                color: AppColors.error,
+                onTap: () => tabController.animateTo(5),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // ── Recent bookings ──────────────────────────────────────────────
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const _SectionLabel('Recent Bookings'),
+              TextButton(
+                onPressed: () => tabController.animateTo(3),
+                child: const Text('See all', style: TextStyle(
+                    color: AppColors.mint, fontSize: 12)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (recentBookings.isEmpty)
+            const _EmptyHint('No bookings yet')
+          else
+            ...recentBookings.take(5).map((b) => _RecentBookingRow(booking: b)),
+          const SizedBox(height: 24),
+
+          // ── Active fundraisers ───────────────────────────────────────────
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const _SectionLabel('Active Fundraisers'),
+              TextButton(
+                onPressed: () => tabController.animateTo(5),
+                child: const Text('See all', style: TextStyle(
+                    color: AppColors.mint, fontSize: 12)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (funds.where((f) => f.isActive).isEmpty)
+            const _EmptyHint('No active fundraisers')
+          else
+            ...funds.where((f) => f.isActive).take(3).map((f) => _FundRow(fund: f)),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _StatCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Icon(icon, color: color, size: 22),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(value, style: TextStyle(
+                  fontSize: 22, fontWeight: FontWeight.w800, color: color)),
+              Text(label, style: const TextStyle(
+                  fontSize: 11, color: AppColors.slate),
+                  maxLines: 1, overflow: TextOverflow.ellipsis),
+            ]),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RecentBookingRow extends StatelessWidget {
+  final Booking booking;
+  const _RecentBookingRow({required this.booking});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(children: [
+        Text(booking.groundIcon, style: const TextStyle(fontSize: 22)),
+        const SizedBox(width: 10),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(booking.userName, style: const TextStyle(
+              fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.ink)),
+          Text('${booking.groundName} · ${booking.slot}  '
+              '${DateFormat('d MMM').format(booking.date)}',
+              style: const TextStyle(fontSize: 11, color: AppColors.slate)),
+        ])),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: AppColors.mint.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: const Text('Confirmed',
+              style: TextStyle(fontSize: 10, color: AppColors.mint,
+                  fontWeight: FontWeight.w600)),
+        ),
+      ]),
+    );
+  }
+}
+
+class _FundRow extends StatelessWidget {
+  final Fundraiser fund;
+  const _FundRow({required this.fund});
+
+  @override
+  Widget build(BuildContext context) {
+    final pct = fund.progressPercent;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Expanded(child: Text(fund.title, style: const TextStyle(
+              fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.ink),
+              maxLines: 1, overflow: TextOverflow.ellipsis)),
+          Text('${(pct * 100).toStringAsFixed(0)}%',
+              style: const TextStyle(fontSize: 12, color: AppColors.slate,
+                  fontWeight: FontWeight.w600)),
+        ]),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: pct,
+            backgroundColor: AppColors.mist,
+            color: AppColors.mint,
+            minHeight: 5,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text('₹${fund.raisedAmount.toStringAsFixed(0)} raised of ₹${fund.goalAmount.toStringAsFixed(0)}',
+            style: const TextStyle(fontSize: 11, color: AppColors.slate)),
+      ]),
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  final String text;
+  const _SectionLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(text, style: const TextStyle(
+        fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.ink));
+  }
+}
+
+class _EmptyHint extends StatelessWidget {
+  final String text;
+  const _EmptyHint(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.mist,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(text, textAlign: TextAlign.center,
+          style: const TextStyle(color: AppColors.slate, fontSize: 13)),
     );
   }
 }

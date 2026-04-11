@@ -44,15 +44,33 @@ class _MainShellState extends ConsumerState<MainShell> {
     // Clamp index when admin status changes
     final clampedIndex = _index.clamp(0, pages.length - 1);
 
-    return Scaffold(
-      body: IndexedStack(
-        index: clampedIndex,
-        children: pages,
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: clampedIndex,
-        onTap: (i) => setState(() => _index = i),
-        items: navItems,
+    final adminPageIndex = isAdmin ? pages.length - 1 : -1;
+    final adminTabIndex = ref.watch(adminTabIndexProvider);
+    final onAdminNonOverview =
+        clampedIndex == adminPageIndex && adminTabIndex != 0;
+
+    return PopScope(
+      canPop: clampedIndex == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (onAdminNonOverview) {
+          // AdminScreen handles going to overview — reset tab index in provider
+          // and let the tab controller in AdminScreen animate via the listener
+          ref.read(adminTabIndexProvider.notifier).state = 0;
+        } else {
+          setState(() => _index = 0);
+        }
+      },
+      child: Scaffold(
+        body: IndexedStack(
+          index: clampedIndex,
+          children: pages,
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: clampedIndex,
+          onTap: (i) => setState(() => _index = i),
+          items: navItems,
+        ),
       ),
     );
   }

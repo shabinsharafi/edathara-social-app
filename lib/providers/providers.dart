@@ -77,6 +77,9 @@ final feedbackProvider = StreamProvider<List<ClubFeedback>>((ref) {
   return ref.watch(firestoreServiceProvider).feedbackStream();
 });
 
+// ─── Admin tab index (shared so MainShell can coordinate back-press) ─────────
+final adminTabIndexProvider = StateProvider<int>((ref) => 0);
+
 // ─── Booking date selection ───────────────────────────────────────────────────
 final selectedBookingDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
 
