@@ -73,9 +73,12 @@ class FirestoreService {
   }
 
   Stream<List<Booking>> userBookingsStream(String userId) {
+    final now = DateTime.now();
+    final startOfToday = DateTime(now.year, now.month, now.day); // midnight
     return _db.collection('bookings')
         .where('userId', isEqualTo: userId)
-        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(DateTime.now()))
+        .where('status', isEqualTo: 'confirmed')
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfToday))
         .orderBy('date')
         .limit(10)
         .snapshots()

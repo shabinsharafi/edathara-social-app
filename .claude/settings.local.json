@@ -43,7 +43,9 @@
       "Bash(powershell.exe -Command \"reg query 'HKCU\\\\SOFTWARE\\\\Node.js' 2>&1\")",
       "Bash(powershell.exe -Command ':*)",
       "Bash(powershell.exe -Command \"reg query 'HKCU\\\\Environment' /v Path\")",
-      "Bash(powershell.exe -Command \"Get-ChildItem 'C:\\\\Users\\\\Al Fathima\\\\AppData\\\\Roaming\\\\npm' | Select-Object Name\")"
+      "Bash(powershell.exe -Command \"Get-ChildItem 'C:\\\\Users\\\\Al Fathima\\\\AppData\\\\Roaming\\\\npm' | Select-Object Name\")",
+      "Bash(export PATH=\"$PATH:/c/flutter/bin\")",
+      "Bash(flutter analyze:*)"
     ]
   }
 }

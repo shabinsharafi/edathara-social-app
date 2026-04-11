@@ -535,6 +535,9 @@ class _GroundAdminCard extends ConsumerWidget {
           Switch(value: ground.isActive, activeColor: AppColors.mint,
               onChanged: (v) => ref.read(firestoreServiceProvider)
                   .updateGround(ground.copyWith(isActive: v))),
+          IconButton(
+              icon: const Icon(Icons.edit_outlined, color: AppColors.info),
+              onPressed: () => _showEditGroundSheet(context, ref)),
           IconButton(icon: const Icon(Icons.delete_outline, color: AppColors.error),
               onPressed: () => _confirmDelete(context, ref)),
         ]),
@@ -565,6 +568,79 @@ class _GroundAdminCard extends ConsumerWidget {
           }).toList(),
         ),
       ]),
+    );
+  }
+
+  void _showEditGroundSheet(BuildContext context, WidgetRef ref) {
+    final nameCtrl = TextEditingController(text: ground.name);
+    final descCtrl = TextEditingController(text: ground.description);
+    String icon  = ground.icon;
+    String color = ground.colorHex;
+
+    showModalBottomSheet(
+      context: context, isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => StatefulBuilder(builder: (ctx, setS) => Padding(
+        padding: EdgeInsets.only(left: 20, right: 20, top: 20,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 20),
+        child: SingleChildScrollView(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _SheetHandle(),
+            const SizedBox(height: 16),
+            const Text('Edit Play Area', style: TextStyle(fontSize: 18,
+                fontWeight: FontWeight.w800, color: AppColors.ink)),
+            const SizedBox(height: 20),
+            _Label('Icon'),
+            const SizedBox(height: 8),
+            Wrap(spacing: 10, runSpacing: 10,
+              children: ['🏟','🏏','⚽','🏸'].map((e) =>
+                GestureDetector(onTap: () => setS(() => icon = e),
+                  child: _IconOption(emoji: e, selected: icon == e)),
+              ).toList(),
+            ),
+            const SizedBox(height: 16),
+            _Label('Color'),
+            const SizedBox(height: 8),
+            Wrap(spacing: 10, children: {
+              '#1A5C3A': AppColors.green, '#1A3A6C': const Color(0xFF1A3A6C),
+              '#4A235A': const Color(0xFF4A235A), '#C0392B': const Color(0xFFC0392B),
+              '#E8B84B': AppColors.gold, '#2C3E50': const Color(0xFF2C3E50),
+            }.entries.map((e) => GestureDetector(
+              onTap: () => setS(() => color = e.key),
+              child: _ColorDot(hex: e.key, c: e.value, selected: color == e.key),
+            )).toList()),
+            const SizedBox(height: 16),
+            TextField(controller: nameCtrl,
+                decoration: const InputDecoration(labelText: 'Ground Name *')),
+            const SizedBox(height: 12),
+            TextField(controller: descCtrl,
+                decoration: const InputDecoration(
+                    labelText: 'Description (optional)')),
+            const SizedBox(height: 24),
+            PrimaryButton(
+              label: 'Save Changes',
+              fullWidth: true,
+              icon: Icons.check_outlined,
+              onPressed: () async {
+                if (nameCtrl.text.isEmpty) return;
+                await ref.read(firestoreServiceProvider).updateGround(
+                  ground.copyWith(
+                    name: nameCtrl.text.trim(),
+                    icon: icon,
+                    colorHex: color,
+                    description: descCtrl.text.trim(),
+                  ),
+                );
+                if (ctx.mounted) Navigator.pop(ctx);
+              },
+            ),
+          ],
+        )),
+      )),
     );
   }
 
@@ -935,7 +1011,9 @@ class _BookingAdminCard extends StatelessWidget {
             _IconBtn(icon: Icons.phone_outlined, color: AppColors.mint,
                 onTap: () async {
                   final url = Uri.parse('tel:${booking.userPhone}');
-                  if (await canLaunchUrl(url)) launchUrl(url);
+                  if (await canLaunchUrl(url)) {
+                    launchUrl(url, mode: LaunchMode.externalApplication);
+                  }
                 }),
           const SizedBox(width: 6),
           if (onCancel != null && !past)
@@ -1527,11 +1605,11 @@ class _AdminsTab extends ConsumerStatefulWidget {
 }
 
 class _AdminsTabState extends ConsumerState<_AdminsTab> {
-  final _emailCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
   bool _loading = false;
 
   @override
-  void dispose() { _emailCtrl.dispose(); super.dispose(); }
+  void dispose() { _phoneCtrl.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
@@ -1542,18 +1620,22 @@ class _AdminsTabState extends ConsumerState<_AdminsTab> {
         _Label('Grant Admin Access'),
         const SizedBox(height: 12),
         AppCard(child: Column(children: [
-          TextField(controller: _emailCtrl, keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(labelText: 'User Email',
-                prefixIcon: Icon(Icons.email_outlined))),
+          TextField(controller: _phoneCtrl, keyboardType: TextInputType.phone,
+            decoration: const InputDecoration(
+                labelText: 'User Phone Number',
+                prefixIcon: Icon(Icons.phone_outlined),
+                prefixText: '+91  ')),
           const SizedBox(height: 12),
           PrimaryButton(label: 'Grant Admin', fullWidth: true, isLoading: _loading,
             icon: Icons.admin_panel_settings_outlined,
             onPressed: () async {
-              if (_emailCtrl.text.isEmpty) return;
+              if (_phoneCtrl.text.isEmpty) return;
               setState(() => _loading = true);
               try {
-                await ref.read(authServiceProvider).grantAdmin(_emailCtrl.text.trim());
-                _emailCtrl.clear();
+                final phone = _phoneCtrl.text.trim();
+                final fullPhone = phone.startsWith('+') ? phone : '+91$phone';
+                await ref.read(authServiceProvider).grantAdminByPhone(fullPhone);
+                _phoneCtrl.clear();
                 if (mounted) showSuccess(context, 'Admin access granted!');
               } catch (e) {
                 if (mounted) showError(context, e.toString());
@@ -1573,7 +1655,8 @@ class _AdminsTabState extends ConsumerState<_AdminsTab> {
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(a.name, style: const TextStyle(fontWeight: FontWeight.w700,
                   fontSize: 14, color: AppColors.ink)),
-              Text(a.email, style: const TextStyle(fontSize: 12, color: AppColors.slate)),
+              Text(a.phone.isNotEmpty ? a.phone : '—',
+                  style: const TextStyle(fontSize: 12, color: AppColors.slate)),
             ])),
             const StatusPill(label: 'ADMIN', color: AppColors.gold),
             const SizedBox(width: 8),

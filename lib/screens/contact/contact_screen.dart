@@ -44,7 +44,9 @@ class _ContactCard extends StatelessWidget {
 
   void _call() async {
     final url = Uri.parse('tel:${contact.phone}');
-    if (await canLaunchUrl(url)) launchUrl(url);
+    if (await canLaunchUrl(url)) {
+      launchUrl(url, mode: LaunchMode.externalApplication);
+    }
   }
 
   void _whatsapp() async {

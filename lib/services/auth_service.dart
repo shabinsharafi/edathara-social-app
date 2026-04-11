@@ -21,51 +21,100 @@ class AuthService {
     );
   }
 
-  Future<AppUser> signUp({
-    required String name,
-    required String email,
-    required String password,
-    String phone = '',
-  }) async {
-    final cred = await _auth.createUserWithEmailAndPassword(
-      email: email, password: password,
-    );
-    await cred.user!.updateDisplayName(name);
+  // ─── Phone OTP ──────────────────────────────────────────────────────────────
 
+  Future<void> sendOtp({
+    required String phone,
+    required void Function(String verificationId, int? resendToken) codeSent,
+    required void Function(String error) failed,
+    void Function(PhoneAuthCredential)? autoVerified,
+  }) async {
+    await _auth.verifyPhoneNumber(
+      phoneNumber: phone,
+      verificationCompleted: (credential) async {
+        autoVerified?.call(credential);
+        await _auth.signInWithCredential(credential);
+      },
+      verificationFailed: (e) => failed(_friendlyMessage(e)),
+      codeSent: codeSent,
+      codeAutoRetrievalTimeout: (_) {},
+    );
+  }
+
+  Future<UserCredential> verifyOtp({
+    required String verificationId,
+    required String smsCode,
+  }) async {
+    try {
+      final credential = PhoneAuthProvider.credential(
+        verificationId: verificationId,
+        smsCode: smsCode,
+      );
+      return await _auth.signInWithCredential(credential);
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_friendlyMessage(e));
+    }
+  }
+
+  // ─── Error message mapper ────────────────────────────────────────────────────
+
+  static String _friendlyMessage(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'invalid-phone-number':
+        return 'Invalid phone number. Please check and try again.';
+      case 'too-many-requests':
+        return 'Too many attempts. Please try again later.';
+      case 'quota-exceeded':
+        return 'SMS limit reached. Please try again later.';
+      case 'invalid-verification-code':
+        return 'Incorrect OTP. Please check and try again.';
+      case 'invalid-verification-id':
+      case 'missing-verification-id':
+        return 'Session expired. Please resend the OTP.';
+      case 'session-expired':
+        return 'OTP expired. Please request a new one.';
+      case 'network-request-failed':
+        return 'Network error. Check your internet connection.';
+      case 'user-disabled':
+        return 'This account has been disabled. Contact support.';
+      case 'missing-phone-number':
+        return 'Please enter your phone number.';
+      case 'missing-verification-code':
+        return 'Please enter the OTP.';
+      case 'captcha-check-failed':
+        return 'Security check failed. Please try again.';
+      case 'app-not-authorized':
+        return 'App not authorised for phone sign-in. Contact support.';
+      default:
+        return 'Something went wrong. Please try again.';
+    }
+  }
+
+  Future<AppUser> createPhoneUser({
+    required String uid,
+    required String name,
+    required String phone,
+  }) async {
     final user = AppUser(
-      uid: cred.user!.uid,
+      uid: uid,
       name: name,
-      email: email,
+      email: '',
       phone: phone,
       isAdmin: false,
       createdAt: DateTime.now(),
     );
-
-    await _db.collection('users').doc(user.uid).set(user.toMap());
+    await _db.collection('users').doc(uid).set(user.toMap());
     return user;
-  }
-
-  Future<AppUser> signIn({
-    required String email,
-    required String password,
-  }) async {
-    final cred = await _auth.signInWithEmailAndPassword(
-      email: email, password: password,
-    );
-    final doc = await _db.collection('users').doc(cred.user!.uid).get();
-    if (!doc.exists) throw Exception('User profile not found');
-    return AppUser.fromDoc(doc);
   }
 
   Future<void> signOut() => _auth.signOut();
 
-  Future<void> resetPassword(String email) =>
-      _auth.sendPasswordResetEmail(email: email);
+  // ─── Admin Management ────────────────────────────────────────────────────────
 
-  Future<void> grantAdmin(String email) async {
+  Future<void> grantAdminByPhone(String phone) async {
     final query = await _db.collection('users')
-        .where('email', isEqualTo: email).limit(1).get();
-    if (query.docs.isEmpty) throw Exception('User not found with that email');
+        .where('phone', isEqualTo: phone).limit(1).get();
+    if (query.docs.isEmpty) throw Exception('No user found with that phone number');
     await query.docs.first.reference.update({'isAdmin': true});
   }
 

@@ -57,9 +57,10 @@ final bannersProvider = StreamProvider<List<BannerModel>>((ref) {
 
 // ─── User Bookings ───────────────────────────────────────────────────────────
 final userBookingsProvider = StreamProvider<List<Booking>>((ref) {
-  final user = ref.watch(currentAppUserProvider).valueOrNull;
-  if (user == null) return Stream.value([]);
-  return ref.watch(firestoreServiceProvider).userBookingsStream(user.uid);
+  // Use Firebase Auth uid directly — doesn't wait for Firestore doc to load
+  final firebaseUser = ref.watch(authStateProvider).valueOrNull;
+  if (firebaseUser == null) return Stream.value([]);
+  return ref.watch(firestoreServiceProvider).userBookingsStream(firebaseUser.uid);
 });
 
 // ─── All Bookings (Admin) ─────────────────────────────────────────────────────

@@ -56,7 +56,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(currentAppUserProvider).valueOrNull;
-    final banners = ref.watch(bannersProvider).valueOrNull ?? _defaultBanners();
+    final _rawBanners = ref.watch(bannersProvider).valueOrNull;
+    final banners = (_rawBanners == null || _rawBanners.isEmpty)
+        ? _defaultBanners()
+        : _rawBanners;
     final news = ref.watch(newsProvider).valueOrNull ?? [];
     final myBookings = ref.watch(userBookingsProvider).valueOrNull ?? [];
 
@@ -532,7 +535,7 @@ class _ProfileSheet extends StatelessWidget {
           UserAvatar(name: user?.name ?? '', size: 64),
           const SizedBox(height: 12),
           Text(user?.name ?? '', style: Theme.of(context).textTheme.headlineSmall),
-          Text(user?.email ?? '',
+          Text(user?.phone.isNotEmpty == true ? user!.phone : '',
               style: const TextStyle(color: AppColors.slate, fontSize: 13)),
           if (user?.isAdmin == true) ...[
             const SizedBox(height: 8),
