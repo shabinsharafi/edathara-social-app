@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:greenfield_club/models/banner.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
@@ -563,14 +565,18 @@ class PostNewsScreen extends ConsumerStatefulWidget {
 class _PostNewsScreenState extends ConsumerState<PostNewsScreen> {
   final _titleCtrl = TextEditingController();
   final _bodyCtrl  = TextEditingController();
+  File? _image;
   bool _isLoading = false;
+
+  @override
+  void dispose() { _titleCtrl.dispose(); _bodyCtrl.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(currentAppUserProvider).valueOrNull;
     return Scaffold(
       appBar: AppBar(title: const Text('Post News')),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
@@ -587,6 +593,46 @@ class _PostNewsScreenState extends ConsumerState<PostNewsScreen> {
                 alignLabelWithHint: true,
               ),
             ),
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: () async {
+                final x = await ImagePicker().pickImage(
+                    source: ImageSource.gallery, imageQuality: 75);
+                if (x != null) setState(() => _image = File(x.path));
+              },
+              child: Container(
+                height: _image != null ? 160 : 56,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                    color: AppColors.mist,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.border)),
+                clipBehavior: Clip.antiAlias,
+                child: _image != null
+                  ? Stack(fit: StackFit.expand, children: [
+                      Image.file(_image!, fit: BoxFit.cover),
+                      Positioned(top: 8, right: 8, child: GestureDetector(
+                        onTap: () => setState(() => _image = null),
+                        child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                                color: Colors.black54, shape: BoxShape.circle),
+                            child: const Icon(Icons.close,
+                                color: Colors.white, size: 14)),
+                      )),
+                    ])
+                  : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.add_photo_alternate_outlined,
+                            color: AppColors.slate, size: 20),
+                        SizedBox(width: 8),
+                        Text('Attach image (optional)',
+                            style: TextStyle(
+                                color: AppColors.slate, fontSize: 13)),
+                      ]),
+              ),
+            ),
             const SizedBox(height: 24),
             PrimaryButton(
               label: 'Publish News',
@@ -601,6 +647,7 @@ class _PostNewsScreenState extends ConsumerState<PostNewsScreen> {
                   body: _bodyCtrl.text.trim(),
                   authorId: user!.uid,
                   authorName: user.name,
+                  imageFile: _image,
                 );
                 if (mounted) {
                   Navigator.pop(context);
