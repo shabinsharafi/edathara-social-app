@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
+import '../../models/banner.dart';
 import '../../widgets/shared_widgets.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -36,6 +37,7 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
     ('💰', 'Funds'),
     ('💬', 'Feedback'),
     ('📞', 'Contacts'),
+    ('🖼', 'Banners'),
     ('👤', 'Admins'),
   ];
 
@@ -95,6 +97,7 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
           const _FundsTab(),
           const _FeedbackTab(),
           const _ContactsTab(),
+          const _BannersTab(),
           const _AdminsTab(),
         ],
       ),
@@ -1595,7 +1598,246 @@ class _ContactSheetState extends State<_ContactSheet> {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// 8. ADMINS TAB
+// 8. BANNERS TAB
+// ═══════════════════════════════════════════════════════════════════════════════
+class _BannersTab extends ConsumerStatefulWidget {
+  const _BannersTab();
+
+  @override
+  ConsumerState<_BannersTab> createState() => _BannersTabState();
+}
+
+class _BannersTabState extends ConsumerState<_BannersTab> {
+  final _titleCtrl    = TextEditingController();
+  final _subtitleCtrl = TextEditingController();
+  final _colorCtrl    = TextEditingController(text: '#0D2B1F');
+  final _orderCtrl    = TextEditingController(text: '0');
+  File?  _imageFile;
+  bool   _adding = false;
+
+  @override
+  void dispose() {
+    _titleCtrl.dispose();
+    _subtitleCtrl.dispose();
+    _colorCtrl.dispose();
+    _orderCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final xf = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 80);
+    if (xf != null) setState(() => _imageFile = File(xf.path));
+  }
+
+  Future<void> _addBanner() async {
+    final title = _titleCtrl.text.trim();
+    final subtitle = _subtitleCtrl.text.trim();
+    if (title.isEmpty) { showError(context, 'Title is required'); return; }
+    setState(() => _adding = true);
+    try {
+      final b = BannerModel(
+        id: '',
+        title: title,
+        subtitle: subtitle,
+        colorHex: _colorCtrl.text.trim().isNotEmpty ? _colorCtrl.text.trim() : '#0D2B1F',
+        sortOrder: int.tryParse(_orderCtrl.text.trim()) ?? 0,
+      );
+      await ref.read(firestoreServiceProvider).addBanner(b, imageFile: _imageFile);
+      _titleCtrl.clear();
+      _subtitleCtrl.clear();
+      _colorCtrl.text = '#0D2B1F';
+      _orderCtrl.text = '0';
+      setState(() { _imageFile = null; _adding = false; });
+      if (mounted) showSuccess(context, 'Banner added');
+    } catch (e) {
+      if (mounted) showError(context, 'Error: $e');
+      setState(() => _adding = false);
+    }
+  }
+
+  Future<void> _delete(String id) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Delete Banner'),
+        content: const Text('Remove this banner?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete', style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) {
+      await ref.read(firestoreServiceProvider).deleteBanner(id);
+      if (mounted) showSuccess(context, 'Banner deleted');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final banners = ref.watch(bannersProvider).valueOrNull ?? [];
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+
+        // ── Add Banner Card ────────────────────────────────────────────────
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 8)],
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('Add Banner', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.ink)),
+            const SizedBox(height: 12),
+
+            // Image picker
+            GestureDetector(
+              onTap: _pickImage,
+              child: Container(
+                height: 130,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: AppColors.mist,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.border),
+                  image: _imageFile != null
+                      ? DecorationImage(image: FileImage(_imageFile!), fit: BoxFit.cover)
+                      : null,
+                ),
+                child: _imageFile == null
+                    ? const Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                        Icon(Icons.add_photo_alternate_outlined, size: 36, color: AppColors.slate),
+                        SizedBox(height: 6),
+                        Text('Tap to pick image', style: TextStyle(color: AppColors.slate, fontSize: 12)),
+                      ])
+                    : null,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            TextFormField(
+              controller: _titleCtrl,
+              decoration: const InputDecoration(labelText: 'Title *', prefixIcon: Icon(Icons.title)),
+            ),
+            const SizedBox(height: 10),
+            TextFormField(
+              controller: _subtitleCtrl,
+              decoration: const InputDecoration(labelText: 'Subtitle', prefixIcon: Icon(Icons.subtitles_outlined)),
+            ),
+            const SizedBox(height: 10),
+            Row(children: [
+              Expanded(
+                child: TextFormField(
+                  controller: _colorCtrl,
+                  decoration: const InputDecoration(labelText: 'BG Color (hex)', prefixIcon: Icon(Icons.palette_outlined)),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: TextFormField(
+                  controller: _orderCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Sort Order', prefixIcon: Icon(Icons.sort)),
+                ),
+              ),
+            ]),
+            const SizedBox(height: 14),
+            PrimaryButton(
+              label: 'Add Banner',
+              isLoading: _adding,
+              fullWidth: true,
+              icon: Icons.add_photo_alternate,
+              onPressed: _addBanner,
+            ),
+          ]),
+        ),
+
+        const SizedBox(height: 20),
+        Text('${banners.length} Banner${banners.length == 1 ? '' : 's'}',
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.ink)),
+        const SizedBox(height: 10),
+
+        // ── Banner list ──────────────────────────────────────────────────
+        ...banners.map((b) => Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6)],
+          ),
+          child: Row(children: [
+            // Thumbnail
+            ClipRRect(
+              borderRadius: const BorderRadius.only(topLeft: Radius.circular(14), bottomLeft: Radius.circular(14)),
+              child: b.imageUrl != null
+                  ? CachedNetworkImage(
+                      imageUrl: b.imageUrl!,
+                      width: 90, height: 70, fit: BoxFit.cover,
+                      placeholder: (_, __) => Container(width: 90, height: 70, color: AppColors.mist),
+                      errorWidget: (_, __, ___) => Container(width: 90, height: 70, color: AppColors.mist,
+                          child: const Icon(Icons.broken_image_outlined, color: AppColors.slate)),
+                    )
+                  : Container(
+                      width: 90, height: 70,
+                      color: _hexColor(b.colorHex),
+                      child: const Icon(Icons.image_outlined, color: Colors.white54),
+                    ),
+            ),
+            // Details
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(b.title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.ink),
+                      maxLines: 1, overflow: TextOverflow.ellipsis),
+                  if (b.subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(b.subtitle, style: const TextStyle(fontSize: 12, color: AppColors.slate),
+                        maxLines: 1, overflow: TextOverflow.ellipsis),
+                  ],
+                  const SizedBox(height: 4),
+                  Text('Order: ${b.sortOrder}', style: const TextStyle(fontSize: 11, color: AppColors.slate)),
+                ]),
+              ),
+            ),
+            // Delete
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: AppColors.error),
+              onPressed: () => _delete(b.id),
+            ),
+          ]),
+        )),
+
+        if (banners.isEmpty)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 32),
+              child: Text('No banners yet.\nAdd one above.', textAlign: TextAlign.center,
+                  style: TextStyle(color: AppColors.slate, fontSize: 14)),
+            ),
+          ),
+      ]),
+    );
+  }
+
+  Color _hexColor(String hex) {
+    try {
+      final h = hex.replaceAll('#', '');
+      return Color(int.parse('FF$h', radix: 16));
+    } catch (_) {
+      return AppColors.forest;
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 9. ADMINS TAB
 // ═══════════════════════════════════════════════════════════════════════════════
 class _AdminsTab extends ConsumerStatefulWidget {
   const _AdminsTab();

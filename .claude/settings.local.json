@@ -45,7 +45,18 @@
       "Bash(powershell.exe -Command \"reg query 'HKCU\\\\Environment' /v Path\")",
       "Bash(powershell.exe -Command \"Get-ChildItem 'C:\\\\Users\\\\Al Fathima\\\\AppData\\\\Roaming\\\\npm' | Select-Object Name\")",
       "Bash(export PATH=\"$PATH:/c/flutter/bin\")",
-      "Bash(flutter analyze:*)"
+      "Bash(flutter analyze:*)",
+      "Bash(C:\\\\flutter\\\\bin\\\\flutter.bat build:*)",
+      "Read(//mnt/c/Users/Al Fathima/StudioProjects/**)",
+      "Bash(/mnt/c/flutter/bin/flutter build:*)",
+      "Bash(cmd.exe /c \"cd /d \\\\\"C:\\\\Users\\\\Al Fathima\\\\StudioProjects\\\\edathara-social-app\\\\\" && C:\\\\flutter\\\\bin\\\\flutter.bat build apk --release\")",
+      "Bash(cmd.exe /c \"C:\\\\flutter\\\\bin\\\\flutter.bat build apk --release 2>&1\")",
+      "Bash(powershell.exe -Command \"Set-Location 'C:\\\\Users\\\\Al Fathima\\\\StudioProjects\\\\edathara-social-app'; & 'C:\\\\flutter\\\\bin\\\\flutter.bat' build apk --release 2>&1\")",
+      "Bash(powershell.exe -Command \"Set-Location 'C:\\\\Users\\\\Al Fathima\\\\StudioProjects\\\\edathara-social-app'; & 'C:\\\\flutter\\\\bin\\\\flutter.bat' clean 2>&1; & 'C:\\\\flutter\\\\bin\\\\flutter.bat' build apk --release 2>&1\")",
+      "Bash(powershell.exe -Command \"& 'C:\\\\Users\\\\Al Fathima\\\\.gradle\\\\wrapper\\\\dists\\\\gradle-8.3-bin\\\\*\\\\gradle-8.3\\\\bin\\\\gradle.bat' --stop 2>&1; taskkill /F /IM java.exe 2>&1; Start-Sleep -Seconds 2; Set-Location 'C:\\\\Users\\\\Al Fathima\\\\StudioProjects\\\\edathara-social-app'; & 'C:\\\\flutter\\\\bin\\\\flutter.bat' build apk --release --no-tree-shake-icons 2>&1\")",
+      "Bash(powershell.exe -Command 'taskkill /F /IM java.exe 2>&1; Start-Sleep -Seconds 3; Set-Location '\\\\''C:\\\\Users\\\\Al Fathima\\\\StudioProjects\\\\edathara-social-app'\\\\''; $env:GRADLE_OPTS='\\\\''-Dorg.gradle.daemon=false'\\\\''; & '\\\\''C:\\\\flutter\\\\bin\\\\flutter.bat'\\\\'' build apk --release 2>&1')",
+      "Bash(powershell.exe -Command \"gsutil version 2>&1; gcloud version 2>&1\")",
+      "Bash(powershell.exe -Command \"& 'C:\\\\Program Files\\\\nodejs\\\\node.exe' -e \\\\\"console.log\\('node ok'\\)\\\\\" 2>&1\")"
     ]
   }
 }

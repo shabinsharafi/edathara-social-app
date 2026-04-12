@@ -255,8 +255,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   List<BannerModel> _defaultBanners() => [
     BannerModel(id: '1', title: 'Welcome to Edathara Samskarika Samithi',
         subtitle: 'Book your slot in seconds', colorHex: '#0D2B1F', sortOrder: 0),
-    BannerModel(id: '2', title: 'Annual Sports Meet 2025',
-        subtitle: 'Register now — limited slots', colorHex: '#1A3A6C', sortOrder: 1),
+    // BannerModel(id: '2', title: 'Annual Sports Meet 2025',
+    //     subtitle: 'Register now — limited slots', colorHex: '#1A3A6C', sortOrder: 1),
   ];
 
   String _greeting() {
