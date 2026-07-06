@@ -300,4 +300,191 @@ class FirestoreService {
   Future<void> deleteBanner(String id) async {
     await _db.collection('banners').doc(id).delete();
   }
+
+  // ─── Tournaments ─────────────────────────────────────────────────────────────
+
+  Stream<List<Tournament>> tournamentsStream() {
+    return _db.collection('tournaments')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((s) => s.docs.map(Tournament.fromDoc).toList());
+  }
+
+  Future<String> createTournament(Tournament t) async {
+    final ref = _db.collection('tournaments').doc();
+    final data = t.toMap();
+    data['createdAt'] = Timestamp.now();
+    await ref.set(data);
+    return ref.id;
+  }
+
+  Future<void> updateTournament(String id, Map<String, dynamic> data) async {
+    await _db.collection('tournaments').doc(id).update(data);
+  }
+
+  Future<void> deleteTournament(String id) async {
+    await _db.collection('tournaments').doc(id).delete();
+  }
+
+  Future<void> addScorekeeperByUid(String tournamentId, String uid) async {
+    await _db.collection('tournaments').doc(tournamentId).update({
+      'scorekeeperUids': FieldValue.arrayUnion([uid]),
+    });
+  }
+
+  Future<void> removeScorekeeperByUid(String tournamentId, String uid) async {
+    await _db.collection('tournaments').doc(tournamentId).update({
+      'scorekeeperUids': FieldValue.arrayRemove([uid]),
+    });
+  }
+
+  // ─── Tournament Players ───────────────────────────────────────────────────────
+
+  Stream<List<TournamentPlayer>> tournamentPlayersStream(String tournamentId) {
+    return _db.collection('tournaments').doc(tournamentId)
+        .collection('players')
+        .snapshots()
+        .map((s) {
+          final list = s.docs.map(TournamentPlayer.fromDoc).toList();
+          list.sort((a, b) => a.name.compareTo(b.name));
+          return list;
+        });
+  }
+
+  Future<void> addTournamentPlayer(TournamentPlayer player) async {
+    final ref = _db.collection('tournaments').doc(player.tournamentId)
+        .collection('players').doc();
+    final data = player.toMap();
+    data['createdAt'] = Timestamp.now();
+    await ref.set(data);
+  }
+
+  Future<void> updateTournamentPlayer(TournamentPlayer player) async {
+    await _db.collection('tournaments').doc(player.tournamentId)
+        .collection('players').doc(player.id).update(player.toMap());
+  }
+
+  Future<void> deleteTournamentPlayer(String tournamentId, String playerId) async {
+    await _db.collection('tournaments').doc(tournamentId)
+        .collection('players').doc(playerId).delete();
+  }
+
+  Future<void> assignPlayerToTeam({
+    required String tournamentId,
+    required String playerId,
+    required String? teamId,
+    required String? teamName,
+  }) async {
+    await _db.collection('tournaments').doc(tournamentId)
+        .collection('players').doc(playerId).update({
+      'teamId': teamId,
+      'teamName': teamName,
+    });
+  }
+
+  // ─── Teams ───────────────────────────────────────────────────────────────────
+
+  Stream<List<TournamentTeam>> teamsStream(String tournamentId) {
+    return _db.collection('tournaments').doc(tournamentId)
+        .collection('teams')
+        .orderBy('createdAt')
+        .snapshots()
+        .map((s) => s.docs.map(TournamentTeam.fromDoc).toList());
+  }
+
+  Future<String> addTeam(TournamentTeam team) async {
+    final ref = _db.collection('tournaments').doc(team.tournamentId)
+        .collection('teams').doc();
+    final data = team.toMap();
+    data['createdAt'] = Timestamp.now();
+    await ref.set(data);
+    return ref.id;
+  }
+
+  Future<void> updateTeam(TournamentTeam team) async {
+    await _db.collection('tournaments').doc(team.tournamentId)
+        .collection('teams').doc(team.id).update(team.toMap());
+  }
+
+  Future<void> deleteTeam(String tournamentId, String teamId) async {
+    await _db.collection('tournaments').doc(tournamentId)
+        .collection('teams').doc(teamId).delete();
+  }
+
+  // ─── Fixtures ────────────────────────────────────────────────────────────────
+
+  Stream<List<Fixture>> fixturesStream(String tournamentId) {
+    return _db.collection('tournaments').doc(tournamentId)
+        .collection('fixtures')
+        .orderBy('round')
+        .snapshots()
+        .map((s) => s.docs.map(Fixture.fromDoc).toList());
+  }
+
+  Future<void> addFixture(Fixture fixture) async {
+    final ref = _db.collection('tournaments').doc(fixture.tournamentId)
+        .collection('fixtures').doc();
+    await ref.set(fixture.toMap());
+  }
+
+  Future<void> addFixtures(List<Fixture> fixtures) async {
+    final batch = _db.batch();
+    for (final f in fixtures) {
+      final ref = _db.collection('tournaments').doc(f.tournamentId)
+          .collection('fixtures').doc();
+      batch.set(ref, f.toMap());
+    }
+    await batch.commit();
+  }
+
+  Future<void> updateFixtureScore({
+    required String tournamentId,
+    required String fixtureId,
+    required int homeScore,
+    required int awayScore,
+    required String scoredByUid,
+    required FixtureStatus status,
+  }) async {
+    await _db.collection('tournaments').doc(tournamentId)
+        .collection('fixtures').doc(fixtureId).update({
+      'homeScore': homeScore,
+      'awayScore': awayScore,
+      'scoredByUid': scoredByUid,
+      'scoredAt': Timestamp.now(),
+      'status': status.name,
+    });
+  }
+
+  Future<void> saveMatchSetup({
+    required String tournamentId,
+    required String fixtureId,
+    required List<String> homeXI,
+    required List<String> awayXI,
+    required String tossWinnerId,
+    required String tossWinnerName,
+    required String tossElected,
+  }) async {
+    await _db.collection('tournaments').doc(tournamentId)
+        .collection('fixtures').doc(fixtureId).update({
+      'homeXI': homeXI,
+      'awayXI': awayXI,
+      'tossWinnerId': tossWinnerId,
+      'tossWinnerName': tossWinnerName,
+      'tossElected': tossElected,
+      'status': 'live',
+    });
+  }
+
+  Future<void> deleteFixture(String tournamentId, String fixtureId) async {
+    await _db.collection('tournaments').doc(tournamentId)
+        .collection('fixtures').doc(fixtureId).delete();
+  }
+
+  Future<void> clearFixtures(String tournamentId) async {
+    final snap = await _db.collection('tournaments').doc(tournamentId)
+        .collection('fixtures').get();
+    final batch = _db.batch();
+    for (final doc in snap.docs) batch.delete(doc.reference);
+    await batch.commit();
+  }
 }

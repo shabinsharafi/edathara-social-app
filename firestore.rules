@@ -2,16 +2,34 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
     function isAuth() {
       return request.auth != null;
     }
+
     function isAdmin() {
       return isAuth() &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
+
     function isOwner(uid) {
       return isAuth() && request.auth.uid == uid;
+    }
+
+    function hasTournamentAccess() {
+      return isAuth() && (
+        isAdmin() ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('tournamentAccess', false) == true
+      );
+    }
+
+    function isScorekeeper(tournamentId) {
+      return isAuth() &&
+        (request.auth.uid in
+          get(/databases/$(database)/documents/tournaments/$(tournamentId)).data.get('scorekeeperUids', []));
+    }
+
+    function canWriteTournament(tournamentId) {
+      return isAdmin() || isScorekeeper(tournamentId);
     }
 
     // ── Users ──────────────────────────────────────────────────────────────
@@ -19,8 +37,6 @@ service cloud.firestore {
       allow read: if isAuth();
       allow create: if isOwner(uid);
       allow update: if isOwner(uid) || isAdmin();
-      // Only admins can set isAdmin field
-      allow update: if isAdmin();
     }
 
     // ── Grounds ────────────────────────────────────────────────────────────
@@ -46,10 +62,8 @@ service cloud.firestore {
     match /news/{postId} {
       allow read: if isAuth();
       allow create: if isAdmin();
-      allow update: if isAuth() &&
-        // Only allow updating likedBy field for regular users
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likedBy']);
-      allow update: if isAdmin(); // Admin can update anything
+      allow update: if isAdmin() ||
+        (isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likedBy']));
       allow delete: if isAdmin();
     }
 
@@ -77,6 +91,59 @@ service cloud.firestore {
     match /banners/{bannerId} {
       allow read: if isAuth();
       allow write: if isAdmin();
+    }
+
+    // ── Tournaments + subcollections ───────────────────────────────────────
+    match /tournaments/{tournamentId} {
+      allow read: if hasTournamentAccess();
+      allow create: if isAdmin();
+      allow update: if canWriteTournament(tournamentId);
+      allow delete: if isAdmin();
+
+      match /teams/{teamId} {
+        allow read: if hasTournamentAccess();
+        allow create: if canWriteTournament(tournamentId);
+        allow update: if canWriteTournament(tournamentId);
+        allow delete: if isAdmin();
+      }
+
+      match /players/{playerId} {
+        allow read: if hasTournamentAccess();
+        allow create: if canWriteTournament(tournamentId);
+        allow update: if canWriteTournament(tournamentId);
+        allow delete: if isAdmin();
+      }
+
+      match /fixtures/{fixtureId} {
+        allow read: if hasTournamentAccess();
+        allow create: if canWriteTournament(tournamentId);
+        allow update: if canWriteTournament(tournamentId);
+        allow delete: if isAdmin();
+      }
+    }
+
+    // ── Cricket Innings ────────────────────────────────────────────────────
+    match /cricketInnings/{inningsId} {
+      allow read: if hasTournamentAccess();
+      allow create: if isAdmin() || isScorekeeper(request.resource.data.tournamentId);
+      allow update: if isAdmin() || isScorekeeper(resource.data.tournamentId);
+      allow delete: if isAdmin();
+    }
+
+    // ── Batting Scores ─────────────────────────────────────────────────────
+    match /battingScores/{scoreId} {
+      allow read: if hasTournamentAccess();
+      allow create: if isAdmin() || isScorekeeper(request.resource.data.tournamentId);
+      allow update: if isAdmin() || isScorekeeper(resource.data.tournamentId);
+      allow delete: if isAdmin();
+    }
+
+    // ── Bowling Figures ────────────────────────────────────────────────────
+    match /bowlingFigures/{figureId} {
+      allow read: if hasTournamentAccess();
+      allow create: if isAdmin() || isScorekeeper(request.resource.data.tournamentId);
+      allow update: if isAdmin() || isScorekeeper(resource.data.tournamentId);
+      allow delete: if isAdmin();
     }
   }
 }

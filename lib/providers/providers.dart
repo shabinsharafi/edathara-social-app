@@ -73,6 +73,16 @@ final adminUsersProvider = StreamProvider<List<AppUser>>((ref) {
   return ref.watch(authServiceProvider).adminUsersStream();
 });
 
+// ─── All Users ────────────────────────────────────────────────────────────────
+final allUsersProvider = StreamProvider<List<AppUser>>((ref) {
+  return ref.watch(authServiceProvider).allUsersStream();
+});
+
+// ─── Tournament Access Users ──────────────────────────────────────────────────
+final tournamentAccessUsersProvider = StreamProvider<List<AppUser>>((ref) {
+  return ref.watch(authServiceProvider).tournamentAccessUsersStream();
+});
+
 // ─── Feedback (Admin) ─────────────────────────────────────────────────────────
 final feedbackProvider = StreamProvider<List<ClubFeedback>>((ref) {
   return ref.watch(firestoreServiceProvider).feedbackStream();
@@ -80,6 +90,23 @@ final feedbackProvider = StreamProvider<List<ClubFeedback>>((ref) {
 
 // ─── Admin tab index (shared so MainShell can coordinate back-press) ─────────
 final adminTabIndexProvider = StateProvider<int>((ref) => 0);
+
+// ─── Tournaments ─────────────────────────────────────────────────────────────
+final tournamentsProvider = StreamProvider<List<Tournament>>((ref) {
+  return ref.watch(firestoreServiceProvider).tournamentsStream();
+});
+
+final teamsProvider = StreamProvider.family<List<TournamentTeam>, String>((ref, tournamentId) {
+  return ref.watch(firestoreServiceProvider).teamsStream(tournamentId);
+});
+
+final fixturesProvider = StreamProvider.family<List<Fixture>, String>((ref, tournamentId) {
+  return ref.watch(firestoreServiceProvider).fixturesStream(tournamentId);
+});
+
+final tournamentPlayersProvider = StreamProvider.family<List<TournamentPlayer>, String>((ref, tournamentId) {
+  return ref.watch(firestoreServiceProvider).tournamentPlayersStream(tournamentId);
+});
 
 // ─── Booking date selection ───────────────────────────────────────────────────
 final selectedBookingDateProvider = StateProvider<DateTime>((ref) => DateTime.now());

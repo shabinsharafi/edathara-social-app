@@ -39,6 +39,7 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
     ('📞', 'Contacts'),
     ('🖼', 'Banners'),
     ('👤', 'Admins'),
+    ('🏆', 'Tournaments'),
   ];
 
   @override
@@ -99,6 +100,7 @@ class _AdminScreenState extends ConsumerState<AdminScreen>
           const _ContactsTab(),
           const _BannersTab(),
           const _AdminsTab(),
+          const _TournamentsAdminTab(),
         ],
       ),
     );
@@ -1908,6 +1910,177 @@ class _AdminsTabState extends ConsumerState<_AdminsTab> {
           ])))),
       ],
     ));
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 10. TOURNAMENTS ADMIN TAB
+// ═══════════════════════════════════════════════════════════════════════════════
+class _TournamentsAdminTab extends ConsumerStatefulWidget {
+  const _TournamentsAdminTab();
+
+  @override
+  ConsumerState<_TournamentsAdminTab> createState() => _TournamentsAdminTabState();
+}
+
+class _TournamentsAdminTabState extends ConsumerState<_TournamentsAdminTab> {
+  final _phoneCtrl = TextEditingController();
+  bool _granting = false;
+
+  @override
+  void dispose() { _phoneCtrl.dispose(); super.dispose(); }
+
+  @override
+  Widget build(BuildContext context) {
+    final tournamentsAsync = ref.watch(tournamentsProvider);
+    final accessUsers = ref.watch(tournamentAccessUsersProvider).valueOrNull ?? [];
+    return tournamentsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('Error: $e')),
+      data: (tournaments) {
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            // ── Access control section ──
+            _Label('Tournament Access'),
+            const SizedBox(height: 12),
+            AppCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              TextField(
+                controller: _phoneCtrl,
+                keyboardType: TextInputType.phone,
+                decoration: const InputDecoration(
+                  labelText: 'Grant access by phone',
+                  prefixIcon: Icon(Icons.phone_outlined),
+                  prefixText: '+91  ',
+                ),
+              ),
+              const SizedBox(height: 12),
+              PrimaryButton(
+                label: 'Grant Tournament Access',
+                fullWidth: true,
+                isLoading: _granting,
+                icon: Icons.emoji_events_outlined,
+                onPressed: () async {
+                  if (_phoneCtrl.text.isEmpty) return;
+                  setState(() => _granting = true);
+                  try {
+                    final phone = _phoneCtrl.text.trim();
+                    final fullPhone = phone.startsWith('+') ? phone : '+91$phone';
+                    await ref.read(authServiceProvider).grantTournamentAccessByPhone(fullPhone);
+                    _phoneCtrl.clear();
+                    if (mounted) showSuccess(context, 'Tournament access granted!');
+                  } catch (e) {
+                    if (mounted) showError(context, e.toString());
+                  } finally {
+                    if (mounted) setState(() => _granting = false);
+                  }
+                },
+              ),
+              if (accessUsers.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                const Text('Users with access:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                const SizedBox(height: 8),
+                ...accessUsers.map((u) => ListTile(
+                  dense: true,
+                  leading: UserAvatar(name: u.name, size: 36),
+                  title: Text(u.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                  subtitle: Text(u.phone),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.remove_circle_outline, color: AppColors.error, size: 20),
+                    onPressed: () => ref.read(authServiceProvider).revokeTournamentAccess(u.uid),
+                  ),
+                )),
+              ],
+            ])),
+            const SizedBox(height: 24),
+            // ── Tournaments list ──
+            _Label('All Tournaments (${tournaments.length})'),
+            const SizedBox(height: 12),
+            if (tournaments.isEmpty)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Text('No tournaments yet', style: TextStyle(color: Colors.grey)),
+                ),
+              )
+            else
+              ...tournaments.map((t) => Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                child: AppCard(
+                  child: ListTile(
+                    leading: const Text('🏆', style: TextStyle(fontSize: 28)),
+                    title: Text(t.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text('${t.sport} • ${t.format.name} • ${t.status.name}'),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _StatusDropdown(tournament: t),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, color: AppColors.error),
+                          onPressed: () => _confirmDelete(context, ref, t),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              )),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _confirmDelete(
+      BuildContext context, WidgetRef ref, Tournament t) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Delete Tournament?'),
+        content: Text(
+            'This will delete "${t.name}" permanently. Fixtures and teams will remain in Firestore sub-collections.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel')),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) {
+      await ref.read(firestoreServiceProvider).deleteTournament(t.id);
+    }
+  }
+}
+
+class _StatusDropdown extends ConsumerWidget {
+  final Tournament tournament;
+  const _StatusDropdown({required this.tournament});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return DropdownButton<TournamentStatus>(
+      value: tournament.status,
+      underline: const SizedBox(),
+      isDense: true,
+      items: TournamentStatus.values
+          .map((s) => DropdownMenuItem(
+                value: s,
+                child: Text(s.name[0].toUpperCase() + s.name.substring(1),
+                    style: const TextStyle(fontSize: 12)),
+              ))
+          .toList(),
+      onChanged: (s) {
+        if (s != null) {
+          ref.read(firestoreServiceProvider).updateTournament(
+            tournament.id, {'status': s.name},
+          );
+        }
+      },
+    );
   }
 }
 

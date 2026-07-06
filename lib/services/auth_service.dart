@@ -128,4 +128,29 @@ class AuthService {
         .snapshots()
         .map((snap) => snap.docs.map(AppUser.fromDoc).toList());
   }
+
+  Future<void> grantTournamentAccessByPhone(String phone) async {
+    final query = await _db.collection('users')
+        .where('phone', isEqualTo: phone).limit(1).get();
+    if (query.docs.isEmpty) throw Exception('No user found with that phone number');
+    await query.docs.first.reference.update({'tournamentAccess': true});
+  }
+
+  Future<void> revokeTournamentAccess(String uid) async {
+    await _db.collection('users').doc(uid).update({'tournamentAccess': false});
+  }
+
+  Stream<List<AppUser>> tournamentAccessUsersStream() {
+    return _db.collection('users')
+        .where('tournamentAccess', isEqualTo: true)
+        .snapshots()
+        .map((snap) => snap.docs.map(AppUser.fromDoc).toList());
+  }
+
+  Stream<List<AppUser>> allUsersStream() {
+    return _db.collection('users')
+        .orderBy('name')
+        .snapshots()
+        .map((snap) => snap.docs.map(AppUser.fromDoc).toList());
+  }
 }
